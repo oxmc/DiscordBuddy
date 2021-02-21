@@ -2,7 +2,7 @@
 
 #$1 is an action, like install
 
-DIRECTORY="$(readlink -f "$(dirname "$0")")"
+DIRECTORY="$(readlink -f "$(dirname "$(dirname "$0")")")"
 
 function error {
   echo -e "\e[91m$1\e[39m"
@@ -25,7 +25,7 @@ else
 fi
 
 dirhash() {
-  #find "${DIRECTORY}/update/pi-apps/apps/${2}" -type f -print0
+  #find "${DIRECTORY}/update/DiscordBuddy/" -type f -print0
   #echo "Hashing this dir: $1" 1>&2
   #------ hash every file in the folder ---------------- and add to it the filesystem list ------ hash it again
   hash="$(echo -e "$(find "$1" -type f -print0 | xargs -0 sha1sum | awk '{print $1}')$(find "$1" -type f -exec basename {} \;)" | sha1sum | awk '{print $1}')"
@@ -45,38 +45,38 @@ if [ "$1" == 'multi-install' ];then
   IFS="$PREIFS"
   if [ $failed == 1 ];then
     exit 1
-  elif [ "$(ls "${DIRECTORY}/data/status" | wc -l)" -ge 5 ] && [ "$(($(date --utc --date '' +%s)/86400-30))" -ge "$(cat "${DIRECTORY}/data/last-donate-ask" 2>/dev/null || echo "0")" ];then
-    donatebox() {
-      TEXT="$(wget -qO- https://raw.githubusercontent.com/Botspot/pi-apps-announcements/main/donate_message)"
-      if [ -z "$TEXT" ];then
-        TEXT=" <b>Pi-Apps depends on you!</b>
- 
- I (Botspot) have spent <b>over 300 hours</b> programming Pi-Apps.
- Without financial support, I can't continue developing Pi-Apps as much as I have been. :(
- If every Pi-Apps user pitched in a mere <i>25 cents</i>, I could work on open-source development full-time. 
- 
- If Pi-Apps has saved you time &amp; effort, please consider donating. Any amount helps.
-"
-      fi
-      yad --title="Donations, anyone?" --center \
-        --window-icon="${DIRECTORY}/icons/logo.png" \
-        --text="$(echo -e "$TEXT")" \
-        --button='Support Pi-Apps'!"${DIRECTORY}/icons/paypal.png":0 \
-        --button='No thanks'!"${DIRECTORY}/icons/exit.png"!"I respect your decision.
-Pi-Apps will always be free, but if everyone clicks this button, it won"\'"t be maintained forever.":1
-      button=$?
-      if [ $button == 0 ];then
-        x-www-browser 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=V6W8WM4GN8AJ2&item_name=Pi-Apps+development&currency_code=USD'
-        rm -f "${DIRECTORY}/data/last-donate-ask" 2>/dev/null
-      elif [ $button == 1 ];then
-        echo "$(($(date --utc --date '' +%s)/86400))" > "${DIRECTORY}/data/last-donate-ask"
-      else
-        rm -f "${DIRECTORY}/data/last-donate-ask" 2>/dev/null
-      fi
-    }
-    export -f donatebox
-    export DIRECTORY
-    setsid bash -c donatebox
+  #elif [ "$(ls "${DIRECTORY}/data/status" | wc -l)" -ge 5 ] && [ "$(($(date --utc --date '' +%s)/86400-30))" -ge "$(cat "${DIRECTORY}/data/last-donate-ask" 2>/dev/null || echo "0")" ];then
+    #donatebox() {
+    # TEXT="$(wget -qO- https://raw.githubusercontent.com/oxm/pi-apps-announcements/main/donate_message)"
+    #  if [ -z "$TEXT" ];then
+    #    TEXT=" <b>Pi-Apps depends on you!</b>
+ #
+ #I (Botspot) have spent <b>over 300 hours</b> programming Pi-Apps.
+ #Without financial support, I can't continue developing Pi-Apps as much as I have been. :(
+ #If every Pi-Apps user pitched in a mere <i>25 cents</i>, I could work on open-source development full-time. 
+ #
+ #If Pi-Apps has saved you time &amp; effort, please consider donating. Any amount helps.
+#"
+#     fi
+#     yad --title="Donations, anyone?" --center \
+#       --window-icon="${DIRECTORY}/icons/logo.png" \
+#       --text="$(echo -e "$TEXT")" \
+#       --button='Support Pi-Apps'!"${DIRECTORY}/icons/paypal.png":0 \
+#       --button='No thanks'!"${DIRECTORY}/icons/exit.png"!"I respect your decision.
+#Pi-Apps will always be free, but if everyone clicks this button, it won"\'"t be maintained forever.":1
+#      button=$?
+#      if [ $button == 0 ];then
+#        x-www-browser 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=V6W8WM4GN8AJ2&item_name=Pi-Apps+development&currency_code=USD'
+#        rm -f "${DIRECTORY}/data/last-donate-ask" 2>/dev/null
+#      elif [ $button == 1 ];then
+#        echo "$(($(date --utc --date '' +%s)/86400))" > "${DIRECTORY}/data/last-donate-ask"
+#      else
+#        rm -f "${DIRECTORY}/data/last-donate-ask" 2>/dev/null
+#      fi
+#    }
+#    export -f donatebox
+#    export DIRECTORY
+#    setsid bash -c donatebox
   fi
 elif [ "$1" == 'multi-uninstall' ];then
   failed=0
@@ -185,22 +185,22 @@ elif [ "$1" == 'update' ];then
     git clone --depth=1 "$(cat "${DIRECTORY}/etc/git_url")" || error "failed to clone repository!"
   fi
   
-  newhash="$(dirhash "${DIRECTORY}/update/pi-apps/apps/${app}")"
-  oldhash="$(dirhash "${DIRECTORY}/apps/${app}")"
+  newhash="$(dirhash "${DIRECTORY}/update/@AppName")"
+  oldhash="$(dirhash "${DIRECTORY}/$AppName")"
   
   #detect which installation script exists and get the hash for that one
   
-  if [ -f "${DIRECTORY}/update/pi-apps/apps/${app}/install-32" ];then
-    scriptname='install-32'
-  elif [ -f "${DIRECTORY}/update/pi-apps/apps/${app}/install-64" ];then
-    scriptname='install-64'
-  elif [ -f "${DIRECTORY}/update/pi-apps/apps/${app}/install" ];then
-    scriptname='install'
-  else
-    error "No install script found for the $app app! Please report this to Botspot."
-  fi
-  newinstallhash=$(sha1sum "${DIRECTORY}/update/pi-apps/apps/${app}/${scriptname}" | awk '{print $1}')
-  oldinstallhash=$(sha1sum "${DIRECTORY}/apps/${app}/${scriptname}" | awk '{print $1}')
+  #if [ -f "${DIRECTORY}/update/pi-apps/apps/${app}/install-32" ];then
+  #  scriptname='install-32'
+  #elif [ -f "${DIRECTORY}/update/pi-apps/apps/${app}/install-64" ];then
+  #  scriptname='install-64'
+  #elif [ -f "${DIRECTORY}/update/pi-apps/apps/${app}/install" ];then
+  #  scriptname='install'
+  #else
+  #  error "No install script found for the $app app! Please report this to Botspot."
+  #fi
+  newinstallhash=$(sha1sum "${DIRECTORY}/update/$AppName/install" | awk '{print $1}')
+  oldinstallhash=$(sha1sum "${DIRECTORY}/$AppName/install" | awk '{print $1}')
   
   #echo -e "newinstallhash: $newinstallhash\noldinstallhash: $oldinstallhash"
   #echo -e "newhash: $newhash\noldhash: $oldhash"
@@ -228,7 +228,7 @@ elif [ "$1" == 'update' ];then
   [ -d "${DIRECTORY}/apps/${app}" ] && error "${DIRECTORY}/apps/${app} still exists, despite trying to delete it!"
   
   #copy new version to apps/
-  cp -rf "${DIRECTORY}/update/pi-apps/apps/${app}" "${DIRECTORY}/apps/${app}"
+  cp -rf "${DIRECTORY}/update/$AppName" "${DIRECTORY}/apps/${app}"
   
   if [ "$installback" == 'yes' ] && [ "$(cat "${DIRECTORY}/data/settings/Reinstall after update")" != 'No' ];then
     echo "$app was originally installed before updating. Reinstalling the new version now."
@@ -251,7 +251,7 @@ elif [ "$1" == 'check-all' ];then
   git clone --depth=1 "$(cat "${DIRECTORY}/etc/git_url")" || error "failed to clone repository!"
   
   #generate entire app list, combine local apps and online apps to one list
-  applist="$(echo -e "$(ls "${DIRECTORY}/update/pi-apps/apps")\n$(ls "${DIRECTORY}/apps")" | sort | uniq)"
+  applist="$(echo -e "$(ls "${DIRECTORY}/update/$AppName")\n$(ls "${DIRECTORY}")" | sort | uniq)"
   
   #installedonly flag enabled. Remove apps that are uninstalled
   if [ $installedonly == 1 ];then
@@ -279,22 +279,22 @@ elif [ "$1" == 'check-all' ];then
   for app in $applist
   do
     #echo "app: $app"
-    newhash="$(dirhash "${DIRECTORY}/update/pi-apps/apps/${app}")"
-    oldhash="$(dirhash "${DIRECTORY}/apps/${app}")"
+    newhash="$(dirhash "${DIRECTORY}/update/$AppName")"
+    oldhash="$(dirhash "${DIRECTORY}")"
     #echo -e "newhash: $newhash\noldhash: $oldhash" 1>&2
     
     if [ "$newhash" == "$oldhash" ];then
       echo -e "${app} is identical\e[90m to the online version. Nothing to do!\e[39m" 1>&2
-      echo 'latest' > "${DIRECTORY}/data/update-status/${app}"
+      echo 'latest' > "${DIRECTORY}/data/update-status/"
     else
       if [ ! -d "${DIRECTORY}/apps/${app}" ];then
         echo -e "\e[97m${app} does not exist locally.\e[39m Adding to updatable list." 1>&2
         echo 'new' > "${DIRECTORY}/data/update-status/${app}"
         #in this case, add to updatable list
         updatable="${updatable}|${app}"
-      elif [ ! -d "${DIRECTORY}/update/pi-apps/apps/${app}" ];then
+      elif [ ! -d "${DIRECTORY}/update/$AppName" ];then
         echo -e "\e[97m${app} only exists locally.\e[39m Will not add to updatable list." 1>&2
-        echo 'local' > "${DIRECTORY}/data/update-status/${app}"
+        echo 'local' > "${DIRECTORY}/data/update-status/"
         #in this case, do not add to updatable list
       else
         echo -e "\e[97m${app} exists in both locations, but online version is newer\e[39m. Adding to updatable list." 1>&2
