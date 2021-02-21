@@ -1,0 +1,26 @@
+#!/bin/bash
+DIRECTORY="$(readlink -f "$(dirname "$(dirname "$0")")")"
+AppName="$(cat $DIRECTORY/data/info/appname.inf)"
+WinowData="$(cat $DIRECTORY/data/yad-windows/MainMenu.ui)"
+Used="$(cat $DIRECTORY/data/info/opd)"
+
+function error {
+  echo -e "\e[91m$1\e[39m"
+  exit 1
+}
+
+#Display MainMenu if program has been used before.
+if [ $Used == "True" ]; then
+  yad ---separator='\n' -title="$AppName" --center --width='300' --height='300' --text-align="center" --text="Welcome to $AppName!"
+else #Display StartupMenu.
+  yad --separator='\n' --title="$AppName" --center --width='300' --height='300' --text-align="center" --text="Thanks for instaling $AppName! \nClick next to continue to setup." --window-icon="${DIRECTORY}/icons/logo.png" --button=Cancel!"${DIRECTORY}/icons/exit.png"!'Exit':0 --button='Next'!"${DIRECTORY}/icons/forward.png"!'Continue to setup.':1
+fi
+button=$? #get exit code to determine which button was pressed.
+
+if [ $button -eq 0 ];then
+  exit 0
+elif [ $button -eq 1 ];then
+  bash "$DIRECTORY/scripts/setup/setup"
+else
+  error "Unkown button input recived: $button"
+fi
