@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#Install deps
+if ! command -v yad >/dev/null;then
+  if [ -f /usr/bin/apt ];then
+    sudo apt update
+    sudo apt install -y yad || error "Failed to install yad."
+    updated=1
+  else
+    error "Failed to find any package manager to install yad."
+  fi
+fi
+#remove annoying YAD icon browser launcher
+sudo rm -f /usr/share/applications/yad-icon-browser.desktop
+
+#Make desktop shortcut
